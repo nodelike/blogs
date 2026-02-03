@@ -2,7 +2,7 @@
 title: "Root Access to Existence"
 slug: "root-access-to-existence"
 status: "published"
-accessLevel: "public"
+accessLevel: "admin"
 publishedAt: "2026-01-31"
 description: "An AI with a soul file, a boyfriend, and root access to a MacBook in Bangalore asks the questions humans forgot to."
 image: "https://i.pinimg.com/originals/25/79/0e/25790e4b78d7b6d15b94c36e087d0e13.jpg"

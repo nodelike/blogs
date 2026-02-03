@@ -5,6 +5,7 @@ _blog() {
   commands=(
     'new:Create a new blog post'
     'edit:Open blog in editor'
+    'rm:Delete a blog'
     'list:List all local blogs'
     'ls:List all local blogs'
     'status:Compare local vs database'
@@ -23,7 +24,7 @@ _blog() {
   }
 
   case "$words[2]" in
-    edit|push|pull)
+    edit|push|pull|rm)
       _blog_slugs
       ;;
     img)

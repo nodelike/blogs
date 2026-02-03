@@ -261,6 +261,48 @@ async function cmdEdit(slug) {
   spawn(editor, [filePath], { stdio: 'inherit' });
 }
 
+async function cmdRm(slug, options) {
+  const cleanSlug = slug.replace(/\.md$/, '');
+  const filePath = path.join(BLOGS_DIR, `${cleanSlug}.md`);
+  
+  if (!fs.existsSync(filePath)) {
+    log.error(`Blog not found: ${cleanSlug}`);
+    return;
+  }
+  
+  // Confirm deletion unless --force
+  if (!options.force) {
+    const readline = await import('readline');
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    const answer = await new Promise(resolve => rl.question(`Delete ${cleanSlug}? [y/N] `, resolve));
+    rl.close();
+    
+    if (answer.toLowerCase() !== 'y') {
+      log.dim('Cancelled');
+      return;
+    }
+  }
+  
+  // Delete local file
+  fs.unlinkSync(filePath);
+  log.ok(`Deleted local: ${cleanSlug}.md`);
+  
+  // Also delete from DB if exists and --db flag
+  if (options.db) {
+    try {
+      const db = getDb();
+      const existing = await db.node.findUnique({ where: { slug: cleanSlug } });
+      if (existing) {
+        await db.node.delete({ where: { slug: cleanSlug } });
+        log.ok(`Deleted from database: ${cleanSlug}`);
+      }
+      await closeDb();
+    } catch (err) {
+      log.error(`DB delete failed: ${err.message}`);
+    }
+  }
+}
+
 async function cmdList() {
   const files = getBlogFiles();
   
@@ -677,6 +719,13 @@ program
   .command('edit <slug>')
   .description('Open blog in $EDITOR')
   .action(cmdEdit);
+
+program
+  .command('rm <slug>')
+  .description('Delete a blog')
+  .option('-f, --force', 'Skip confirmation')
+  .option('--db', 'Also delete from database')
+  .action(cmdRm);
 
 program
   .command('list')
