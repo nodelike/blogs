@@ -1,0 +1,8 @@
+# Dependencies
+.blog-cli/node_modules/
+
+# Generated
+.blog-cli/.prisma/
+
+# OS
+.DS_Store

@@ -1,0 +1,111 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Node {
+  id          String      @id @default(uuid())
+  type        NodeType
+  slug        String      @unique
+  title       String
+  content     String?     @db.Text
+  metadata    Json        @default("{}")
+  status      Status      @default(draft)
+  accessLevel AccessLevel @default(public)
+  views       Int         @default(0)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  publishedAt DateTime?
+  
+  media     Media[]
+  edgesFrom Edge[]  @relation("EdgeFrom")
+  edgesTo   Edge[]  @relation("EdgeTo")
+  
+  @@index([type])
+  @@index([status])
+  @@index([accessLevel])
+  @@index([createdAt])
+  @@index([publishedAt])
+  @@index([slug])
+  @@map("nodes")
+}
+
+model Edge {
+  id         String   @id @default(uuid())
+  fromNodeId String
+  toNodeId   String
+  edgeType   EdgeType
+  metadata   Json     @default("{}")
+  createdAt  DateTime @default(now())
+  
+  fromNode Node @relation("EdgeFrom", fields: [fromNodeId], references: [id], onDelete: Cascade)
+  toNode   Node @relation("EdgeTo", fields: [toNodeId], references: [id], onDelete: Cascade)
+  
+  @@unique([fromNodeId, toNodeId, edgeType])
+  @@index([fromNodeId, edgeType])
+  @@index([toNodeId, edgeType])
+  @@index([edgeType])
+  @@map("edges")
+}
+
+model Media {
+  id        String   @id @default(uuid())
+  nodeId    String
+  filePath  String
+  fileType  String
+  fileSize  Int?
+  width     Int?
+  height    Int?
+  duration  Int?
+  altText   String?
+  metadata  Json     @default("{}")
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  
+  node Node @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  
+  @@index([nodeId])
+  @@index([nodeId, order])
+  @@map("media")
+}
+
+enum NodeType {
+  blog
+  note
+  photo
+  video
+  tweet_embed
+  skill
+  project
+  tag
+  location
+  experience
+}
+
+enum EdgeType {
+  demonstrates
+  uses
+  references
+  continues
+  tagged_with
+  located_at
+  inspired_by
+  child_of
+  before
+  after
+}
+
+enum Status {
+  draft
+  published
+  archived
+}
+
+enum AccessLevel {
+  public
+  reader
+  admin
+}

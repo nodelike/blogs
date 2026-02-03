@@ -1,0 +1,20 @@
+{
+  "name": "blog-cli",
+  "version": "1.0.0",
+  "description": "Global CLI for managing blog posts with database sync",
+  "type": "module",
+  "bin": {
+    "blog": "./bin/blog.mjs"
+  },
+  "scripts": {
+    "postinstall": "prisma generate"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.2.0",
+    "@prisma/client": "^7.2.0",
+    "commander": "^12.0.0",
+    "gray-matter": "^4.0.3",
+    "pg": "^8.16.3",
+    "prisma": "^7.2.0"
+  }
+}
