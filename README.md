@@ -36,6 +36,11 @@ blog push my-post      # specific blog
 blog pull              # all blogs
 blog pull my-post      # specific blog
 
+# Upload image (copies URL to clipboard)
+blog img photo.jpg                    # upload
+blog img photo.jpg -w 800             # upload + resize
+blog img photo.jpg -a "My caption"    # with alt text
+
 # Open blogs folder
 blog open
 
@@ -62,13 +67,13 @@ tags:
 
 ## Images
 
-Use Cloudinary URLs for images:
-
-```markdown
-![Alt text](https://res.cloudinary.com/dvapcjwvu/image/upload/v123/image.jpg)
+Upload with CLI (auto-copies URL to clipboard):
+```bash
+blog img screenshot.png -w 800
+# Outputs: https://res.cloudinary.com/dvapcjwvu/image/upload/w_800,q_auto/v123/image.png
 ```
 
-With transformations:
+Then paste in your markdown:
 ```markdown
-![Resized](https://res.cloudinary.com/dvapcjwvu/image/upload/w_800,q_auto/v123/image.jpg)
+![My screenshot](https://res.cloudinary.com/dvapcjwvu/image/upload/w_800,q_auto/v123/image.png)
 ```

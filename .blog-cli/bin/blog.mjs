@@ -489,6 +489,92 @@ async function cmdOpen() {
   log.ok(`Opened: ${BLOGS_DIR}`);
 }
 
+async function cmdImg(filePath, options) {
+  const config = loadConfig();
+  
+  if (!config?.cloudinaryUrl) {
+    log.error('Cloudinary not configured. Run: blog setup');
+    return;
+  }
+  
+  // Resolve file path
+  const resolvedPath = path.resolve(filePath);
+  
+  if (!fs.existsSync(resolvedPath)) {
+    log.error(`File not found: ${resolvedPath}`);
+    return;
+  }
+  
+  // Check if it's an image
+  const ext = path.extname(resolvedPath).toLowerCase();
+  const imageExts = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.avif'];
+  if (!imageExts.includes(ext)) {
+    log.error(`Not an image file: ${ext}`);
+    return;
+  }
+  
+  log.info(`Uploading: ${path.basename(resolvedPath)}...`);
+  
+  try {
+    // Dynamic import cloudinary
+    const { v2: cloudinary } = await import('cloudinary');
+    
+    // Parse CLOUDINARY_URL
+    const url = new URL(config.cloudinaryUrl.replace('cloudinary://', 'http://'));
+    cloudinary.config({
+      cloud_name: url.hostname,
+      api_key: url.username,
+      api_secret: url.password,
+    });
+    
+    // Upload options
+    const uploadOptions = {
+      folder: config.cloudinaryFolder || 'blog',
+      resource_type: 'image',
+    };
+    
+    // Use custom name if provided
+    if (options.name) {
+      uploadOptions.public_id = options.name;
+    }
+    
+    const result = await cloudinary.uploader.upload(resolvedPath, uploadOptions);
+    
+    // Build the URL (with optional width)
+    let imageUrl = result.secure_url;
+    if (options.width) {
+      // Insert transformation
+      imageUrl = imageUrl.replace('/upload/', `/upload/w_${options.width},q_auto/`);
+    }
+    
+    // Copy to clipboard
+    const platform = process.platform;
+    try {
+      if (platform === 'darwin') {
+        execSync(`echo "${imageUrl}" | pbcopy`);
+      } else if (platform === 'win32') {
+        execSync(`echo ${imageUrl} | clip`);
+      } else {
+        execSync(`echo "${imageUrl}" | xclip -selection clipboard`);
+      }
+      log.ok(`Copied to clipboard!`);
+    } catch {
+      // Clipboard failed, just show URL
+    }
+    
+    console.log('');
+    console.log(`${c.cyan}${imageUrl}${c.reset}`);
+    console.log('');
+    
+    // Show markdown snippet
+    const altText = options.alt || path.basename(resolvedPath, ext);
+    log.dim(`Markdown: ![${altText}](${imageUrl})`);
+    
+  } catch (err) {
+    log.error(`Upload failed: ${err.message}`);
+  }
+}
+
 async function cmdConfig(options) {
   if (options.setup) {
     // Interactive setup
@@ -511,6 +597,13 @@ async function cmdConfig(options) {
     
     const caCert = await question(`CA_CERT (base64) [${config.caCert ? '***' : 'none'}]: `);
     if (caCert) config.caCert = caCert;
+    
+    console.log('');
+    const cloudinaryUrl = await question(`CLOUDINARY_URL [${config.cloudinaryUrl ? '***' : 'none'}]: `);
+    if (cloudinaryUrl) config.cloudinaryUrl = cloudinaryUrl;
+    
+    const cloudinaryFolder = await question(`CLOUDINARY_FOLDER [${config.cloudinaryFolder || 'blog'}]: `);
+    if (cloudinaryFolder) config.cloudinaryFolder = cloudinaryFolder;
     
     rl.close();
     
@@ -607,7 +700,15 @@ program
 
 program
   .command('setup')
-  .description('Configure database connection')
+  .description('Configure database and Cloudinary')
   .action(() => cmdConfig({ setup: true }));
+
+program
+  .command('img <file>')
+  .description('Upload image to Cloudinary, copy URL to clipboard')
+  .option('-w, --width <px>', 'Resize width (e.g., 800)')
+  .option('-n, --name <name>', 'Custom public ID/name')
+  .option('-a, --alt <text>', 'Alt text for markdown snippet')
+  .action(cmdImg);
 
 program.parse();
