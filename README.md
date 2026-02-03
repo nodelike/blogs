@@ -13,7 +13,7 @@ Personal blog posts managed via CLI and synced to database.
    ```
 3. Configure database connection:
    ```bash
-   blog config --setup
+   blog setup
    ```
 
 ## Usage

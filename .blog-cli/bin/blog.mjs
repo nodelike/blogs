@@ -606,10 +606,8 @@ program
   .action(cmdOpen);
 
 program
-  .command('config')
-  .description('Configure the CLI')
-  .option('-s, --setup', 'Interactive setup')
-  .option('--show', 'Show current config')
-  .action(cmdConfig);
+  .command('setup')
+  .description('Configure database connection')
+  .action(() => cmdConfig({ setup: true }));
 
 program.parse();
