@@ -271,15 +271,15 @@ async function cmdList() {
   // Parse all blogs
   const blogs = files.map(f => parseBlog(f));
   
-  // Sort by access level: admin > reader > public
-  const accessOrder = { admin: 0, reader: 1, public: 2 };
+  // Sort by access level: public > reader > admin
+  const accessOrder = { public: 0, reader: 1, admin: 2 };
   blogs.sort((a, b) => (accessOrder[a.accessLevel] ?? 3) - (accessOrder[b.accessLevel] ?? 3));
   
   log.title('Local Blogs');
   
   for (const blog of blogs) {
     const icon = { draft: '[ ]', published: '[x]', archived: '[-]' }[blog.status] || '[ ]';
-    const accessColor = { admin: c.red, reader: c.yellow, public: c.green }[blog.accessLevel] || c.dim;
+    const accessColor = { admin: c.red, reader: c.yellow, public: '\x1b[38;5;208m' }[blog.accessLevel] || c.dim;
     const access = ` ${accessColor}[${blog.accessLevel}]${c.reset}`;
     
     console.log(`${icon} ${c.cyan}${blog.slug}${c.reset}${access}`);
