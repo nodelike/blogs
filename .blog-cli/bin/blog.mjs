@@ -268,18 +268,25 @@ async function cmdList() {
     return;
   }
   
+  // Parse all blogs
+  const blogs = files.map(f => parseBlog(f));
+  
+  // Sort by access level: admin > reader > public
+  const accessOrder = { admin: 0, reader: 1, public: 2 };
+  blogs.sort((a, b) => (accessOrder[a.accessLevel] ?? 3) - (accessOrder[b.accessLevel] ?? 3));
+  
   log.title('Local Blogs');
   
-  for (const file of files) {
-    const blog = parseBlog(file);
+  for (const blog of blogs) {
     const icon = { draft: '[ ]', published: '[x]', archived: '[-]' }[blog.status] || '[ ]';
-    const access = blog.accessLevel !== 'public' ? ` ${c.yellow}[${blog.accessLevel}]${c.reset}` : '';
+    const accessColor = { admin: c.red, reader: c.yellow, public: c.green }[blog.accessLevel] || c.dim;
+    const access = ` ${accessColor}[${blog.accessLevel}]${c.reset}`;
     
     console.log(`${icon} ${c.cyan}${blog.slug}${c.reset}${access}`);
     console.log(`    ${c.dim}${blog.title}${c.reset}`);
   }
   
-  console.log(`\n${c.dim}Total: ${files.length} blogs${c.reset}`);
+  console.log(`\n${c.dim}Total: ${blogs.length} blogs${c.reset}`);
 }
 
 async function cmdStatus() {
