@@ -1,0 +1,41 @@
+#compdef blog
+
+_blog() {
+  local -a commands
+  commands=(
+    'new:Create a new blog post'
+    'edit:Open blog in editor'
+    'list:List all local blogs'
+    'ls:List all local blogs'
+    'status:Compare local vs database'
+    'st:Compare local vs database'
+    'push:Push blogs to database'
+    'pull:Pull blogs from database'
+    'open:Open blogs folder'
+    'setup:Configure database and Cloudinary'
+    'img:Upload image to Cloudinary'
+  )
+
+  _blog_slugs() {
+    local -a slugs
+    slugs=(${(f)"$(ls ~/blogs/*.md 2>/dev/null | xargs -I{} basename {} .md | grep -v '^README$' | grep -v '^_')"})
+    _describe 'blog' slugs
+  }
+
+  case "$words[2]" in
+    edit|push|pull)
+      _blog_slugs
+      ;;
+    img)
+      _files -g '*.{jpg,jpeg,png,gif,webp,svg,avif}'
+      ;;
+    new)
+      _message 'slug for new blog'
+      ;;
+    *)
+      _describe 'command' commands
+      ;;
+  esac
+}
+
+_blog "$@"

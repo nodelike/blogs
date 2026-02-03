@@ -247,10 +247,12 @@ Start writing here...
 }
 
 async function cmdEdit(slug) {
-  const filePath = path.join(BLOGS_DIR, `${slug}.md`);
+  // Strip .md extension if provided
+  const cleanSlug = slug.replace(/\.md$/, '');
+  const filePath = path.join(BLOGS_DIR, `${cleanSlug}.md`);
   
   if (!fs.existsSync(filePath)) {
-    log.error(`Blog not found: ${slug}.md`);
+    log.error(`Blog not found: ${cleanSlug}`);
     log.dim(`Run 'blog list' to see available blogs`);
     return;
   }
