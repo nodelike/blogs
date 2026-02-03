@@ -125,7 +125,7 @@ function getBlogFiles() {
   }
   
   return fs.readdirSync(BLOGS_DIR)
-    .filter(f => f.endsWith('.md') && !f.startsWith('_') && !f.startsWith('.'))
+    .filter(f => f.endsWith('.md') && !f.startsWith('_') && !f.startsWith('.') && f !== 'README.md')
     .map(f => path.join(BLOGS_DIR, f));
 }
 
