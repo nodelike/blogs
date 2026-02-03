@@ -451,6 +451,30 @@ async function cmdPush(targetSlug, options) {
   if (results.errors > 0) log.error(`Errors: ${results.errors}`);
   
   await closeDb();
+  
+  // Git commit and push if not dry run and there were changes
+  if (!dryRun && (results.created > 0 || results.updated > 0)) {
+    try {
+      const hasChanges = execSync('git status --porcelain', { cwd: BLOGS_DIR, encoding: 'utf-8' }).trim();
+      if (hasChanges) {
+        execSync('git add -A', { cwd: BLOGS_DIR });
+        const msg = targetSlug ? `update: ${targetSlug}` : `sync ${results.created + results.updated} blog(s)`;
+        execSync(`git commit -m "${msg}"`, { cwd: BLOGS_DIR });
+        log.ok('Committed to git');
+      }
+      
+      // Check if remote exists and push
+      try {
+        execSync('git remote get-url origin', { cwd: BLOGS_DIR, encoding: 'utf-8' });
+        execSync('git push', { cwd: BLOGS_DIR });
+        log.ok('Pushed to remote');
+      } catch {
+        // No remote configured, skip push
+      }
+    } catch (err) {
+      log.warn(`Git: ${err.message}`);
+    }
+  }
 }
 
 async function cmdPull(targetSlug, options) {
